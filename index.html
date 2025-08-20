@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUA: AI Orchestration Engine ✨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+
+    <style>
+        /* === Glass core (tiny, framework‑agnostic) ============================ */
+        :root{
+          /* tweak these to taste */
+          --glass-bg-rgb: 18,18,21;      /* dark surface behind the blur */
+          --glass-alpha: .28;            /* transparency */
+          --glass-blur: 18px;            /* blur radius */
+          --neon-a: 255,0,200;           /* pink */
+          --neon-b: 0,229,255;           /* cyan */
+        }
+        .glass{ 
+          background: rgba(var(--glass-bg-rgb), var(--glass-alpha));
+          backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+          -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+          border: 1px solid rgba(255,255,255,.15);
+          box-shadow: 0 8px 30px rgba(0,0,0,.35);
+          border-radius: 16px;
+        }
+        /* neon border that doesn’t fill the inside (pure CSS, no images) */
+        .neon{ position: relative; }
+        .neon::before{
+          content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px;
+          background: linear-gradient(120deg, rgb(var(--neon-b)) 0%, rgb(var(--neon-a)) 50%, rgb(var(--neon-b)) 100%);
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; /* punch the middle out */
+          pointer-events: none; filter: drop-shadow(0 0 8px rgba(var(--neon-a),.35));
+        }
+        /* intensity presets */
+        .glass-strong { --glass-alpha: .16; --glass-blur: 22px; }
+        .glass-subtle { --glass-alpha: .40; --glass-blur: 12px; }
+
+        /* Optional tiny utility padding to match your current HTML tokens */
+        .p-6{padding:1.5rem} .p-8{padding:2rem}
+        .grid{display:grid} .gap-6{gap:1.5rem}
+        .lg-grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+        .lg-col-span-1{grid-column:span 1 / span 1} .lg-col-span-2{grid-column:span 2 / span 2}
+
+        /* Demo page bg (can remove in real page) */
+        body{margin:0;min-height:100dvh;color:#F5F5F7;background:radial-gradient(1200px 600px at 10% -10%, #1e293b 0%, #0b0e11 60%),
+        url('https://images.dreamstime.com/las-vegas-nevada-april-vibrant-night-scene-strip-featuring-eiffel-tower-replica-colorful-hot-air-balloon-bustling-image339110456.jpg') center/cover fixed; background-blend-mode:overlay; font:16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif}
+        h1{margin:0 0 .5rem;font:700 2rem/1.2 Orbitron, system-ui, sans-serif}
+        .muted{color:#A9B1D6}
+
+        /* --- Styles from original app --- */
+        .font-mono { 
+            font-family: 'Roboto Mono', monospace; 
+        }
+        .gemini-btn {
+            background: linear-gradient(to right, #4f46e5, #818cf8);
+            transition: all 0.3s ease;
+        }
+        .gemini-btn:hover {
+            box-shadow: 0 0 15px rgba(129, 140, 248, 0.5);
+        }
+        .xterm .xterm-viewport { 
+            width: 100% !important; /* Fix for xterm width issue */
+        }
+        
+        /* Neon Glow Effects */
+        .glow-blue {
+            --tw-shadow-color: #3b82f6; /* blue-500 */
+            --tw-shadow: 0 0 8px 0px var(--tw-shadow-color);
+            box-shadow: 0 0 0 1px transparent, var(--tw-shadow);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .glow-yellow {
+             --tw-shadow-color: #eab308; /* yellow-500 */
+            --tw-shadow: 0 0 8px 0px var(--tw-shadow-color);
+            box-shadow: 0 0 0 1px transparent, var(--tw-shadow);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .glow-green {
+            --tw-shadow-color: #22c55e; /* green-500 */
+            --tw-shadow: 0 0 8px 0px var(--tw-shadow-color);
+            box-shadow: 0 0 0 1px transparent, var(--tw-shadow);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .glow-red {
+            --tw-shadow-color: #ef4444; /* red-500 */
+            --tw-shadow: 0 0 8px 0px var(--tw-shadow-color);
+            box-shadow: 0 0 0 1px transparent, var(--tw-shadow);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+
+        /* For focus states on inputs */
+        .input-glow-green:focus {
+            --tw-shadow-color: #22c55e; /* green-500 */
+            --tw-shadow: 0 0 8px 0px var(--tw-shadow-color);
+            box-shadow: 0 0 0 1px transparent, var(--tw-shadow);
+            outline: none;
+            border-color: #22c55e;
+        }
+
+        /* Document Formatting */
+        blockquote {
+            margin: 1.5rem 0;
+            padding: 1rem 1.5rem;
+            border-left: 4px solid rgb(var(--neon-b));
+            background: rgba(var(--neon-b), 0.05);
+            border-radius: 0 8px 8px 0;
+            color: #A9B1D6;
+        }
+        blockquote p {
+            margin: 0;
+        }
+        blockquote ul {
+            margin: 0;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react-syntax-highlighter": "https://esm.sh/react-syntax-highlighter@15.5.0",
+    "react-syntax-highlighter/": "https://esm.sh/react-syntax-highlighter@15.5.0/"
+  }
+}
+</script>
+</head>
+<body class="text-gray-200">
+    <div id="root"></div>
+</body>
+</html>
