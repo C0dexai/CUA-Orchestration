@@ -1,4 +1,5 @@
 
+
 export interface PackagingInterrelation {
   type: string;
   description: string;
@@ -110,4 +111,5 @@ export type GeneratedSpa = {
   tasks: DualLlmTask[];
   createdAt: number;
   files: SpaFile[];
+  env?: Record<string, string>;
 };

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback } from 'react';
 import { type RunningOrchestration, type CustomInstructions, type GeneratedSpa, type LlmStrategy, type DualLlmTask } from './types';
 import Header from './components/Header';
@@ -81,6 +82,11 @@ export default function App(): React.ReactNode {
         setMissionToReenact(null);
     }, []);
 
+    const handleUpdateSpa = (updatedSpa: GeneratedSpa) => {
+        setGeneratedSpas(prevSpas => prevSpas.map(s => s.id === updatedSpa.id ? updatedSpa : s));
+        setManagedSpa(updatedSpa);
+    };
+
     const renderTabContent = () => {
         switch (activeTab) {
             case 'inference':
@@ -139,6 +145,7 @@ export default function App(): React.ReactNode {
                 onPreview={setViewingSpa}
                 onReenact={handleReenactMission}
                 onShareContext={handleShareContext}
+                onUpdateSpa={handleUpdateSpa}
             />
 
             <Modal 

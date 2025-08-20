@@ -1,5 +1,6 @@
 
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { type GeneratedSpa } from '../types';
 import { RocketLaunchIcon } from './icons';
 
@@ -10,13 +11,37 @@ interface SpaManagementPanelProps {
     onPreview: (spa: GeneratedSpa) => void;
     onReenact: (spa: GeneratedSpa) => void;
     onShareContext: (spa: GeneratedSpa) => void;
+    onUpdateSpa: (updatedSpa: GeneratedSpa) => void;
 }
 
-export default function SpaManagementPanel({ isOpen, onClose, spa, onPreview, onReenact, onShareContext }: SpaManagementPanelProps): React.ReactNode {
+export default function SpaManagementPanel({ isOpen, onClose, spa, onPreview, onReenact, onShareContext, onUpdateSpa }: SpaManagementPanelProps): React.ReactNode {
+    const [apiName, setApiName] = useState('');
+    const [apiKey, setApiKey] = useState('');
+
+    useEffect(() => {
+        if (spa) {
+            setApiName(spa.env?.API_NAME || '');
+            setApiKey(spa.env?.API_KEY || '');
+        }
+    }, [spa]);
+
     if (!spa) return null;
 
     const handleAction = (action: (spa: GeneratedSpa) => void) => {
         action(spa);
+    };
+
+    const handleSaveEnv = () => {
+        const updatedSpa: GeneratedSpa = {
+            ...spa,
+            env: {
+                ...spa.env,
+                API_NAME: apiName,
+                API_KEY: apiKey,
+            },
+        };
+        onUpdateSpa(updatedSpa);
+        alert('Environment variables saved!');
     };
 
     return (
@@ -40,6 +65,37 @@ export default function SpaManagementPanel({ isOpen, onClose, spa, onPreview, on
                             <h3 className="text-lg font-semibold text-gray-300 mb-1">Generated Command</h3>
                             <pre className="p-3 bg-black/50 rounded-lg text-green-300 text-xs font-mono whitespace-pre-wrap"><code>{spa.command}</code></pre>
                         </div>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-gray-700 space-y-4">
+                        <h3 className="text-xl font-bold text-white text-center">Environment Variables</h3>
+                        <div>
+                            <label htmlFor="apiName" className="block text-sm font-medium text-gray-300 mb-1">API_NAME</label>
+                            <input
+                                id="apiName"
+                                type="text"
+                                value={apiName}
+                                onChange={(e) => setApiName(e.target.value)}
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white transition-all duration-300 input-glow-green"
+                                placeholder="e.g., GEMINI_API"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="apiKey" className="block text-sm font-medium text-gray-300 mb-1">API_KEY</label>
+                            <input
+                                id="apiKey"
+                                type="password"
+                                value={apiKey}
+                                onChange={(e) => setApiKey(e.target.value)}
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white transition-all duration-300 input-glow-green"
+                                placeholder="Enter API Key for inference"
+                            />
+                        </div>
+                        <button
+                            onClick={handleSaveEnv}
+                            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
+                            Save Environment
+                        </button>
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-gray-700 space-y-4">
