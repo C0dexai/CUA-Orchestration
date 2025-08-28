@@ -83,6 +83,7 @@ export type LlmStrategy = 'GEMINI_PRIMARY' | 'OPENAI_PRIMARY' | 'ABACUS_PRIMARY'
 export type OrchestrationStatus = 'idle' | 'planning' | 'running' | 'completed' | 'failed';
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'error';
 export type LlmName = 'gemini' | 'openai' | 'abacus';
+export type Framework = 'React' | 'Vue' | 'Angular';
 
 export interface DualLlmTask {
     id: number;
@@ -112,4 +113,5 @@ export type GeneratedSpa = {
   createdAt: number;
   files: SpaFile[];
   env?: Record<string, string>;
+  framework: Framework;
 };
